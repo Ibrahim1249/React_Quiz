@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useState } from "react";
 
+
 function Quiz() {
   const [question, setQuestion] = useState([]);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
+ const [time,setTime] = useState(5)
 
   async function fetchData() {
     let response = await fetch(
@@ -31,6 +33,23 @@ function Quiz() {
     }
   }
 
+  useEffect(() => {
+    if (question.length === 0) return;
+    setTime(5);
+    const timer = setInterval(() => {
+      setTime((prevTime) => {
+        if (prevTime === 0) {
+          // Move to the next question if time runs out
+          setIndex(index + 1)
+          return 5; // Reset timer for the next question
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [index, question]);
+
 
   return (
     <>
@@ -44,10 +63,7 @@ function Quiz() {
               <div>
                 <h2>Question {index + 1}</h2>
 
-                <p className="ques">
-                   {question[index].question}
-                </p>
-
+                <p className="ques" dangerouslySetInnerHTML={{ __html: question[index].question }}></p>
                 <ol>
                   {question[index].incorrect_answers.map((option,index)=>{
                     return <li key={index}><button onClick={(e)=>{correctAnswer(e,false)}}>{option}</button></li>
@@ -55,8 +71,9 @@ function Quiz() {
                   <li><button onClick={(e)=>{correctAnswer(e,true)}}>{question[index].correct_answer}</button></li>
                 </ol>
 
-                <p className="timer">Time left : <span>{1}</span> sec</p>
-                <button className="skip" onClick={()=>setIndex(index + 1)}>skip Question</button>
+                <p className="timer">Time left : <span>{time}</span> sec</p>
+            
+                <button className="skip" onClick={()=>setIndex(index + 1)}>Skip Question</button>
 
               </div>
             )}
